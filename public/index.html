@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTC Command Center</title>
+  <style>
+    /* ============================================================
+       CSS VARIABLES & RESET
+       ============================================================ */
+    :root {
+      --primary-black: #000000;
+      --primary-white: #FFFFFF;
+      --accent-orange: #FF6B35;
+      --accent-orange-dark: #E55A22;
+      --accent-orange-glow: rgba(255, 107, 53, 0.15);
+
+      --bg-dark: #0a0a0a;
+      --bg-card: #1a1a1a;
+      --bg-hover: #252525;
+      --bg-input: #1e1e1e;
+      --border-color: #2a2a2a;
+      --border-orange: rgba(255, 107, 53, 0.4);
+
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --text-muted: #808080;
+
+      --success: #2ecc71;
+      --success-bg: rgba(46, 204, 113, 0.1);
+      --error: #e74c3c;
+      --error-bg: rgba(231, 76, 60, 0.1);
+      --warning: #f39c12;
+      --warning-bg: rgba(243, 156, 18, 0.1);
+      --info: #3498db;
+      --info-bg: rgba(52, 152, 219, 0.1);
+
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+
+      --font-mono: 'Courier New', Courier, monospace;
+      --transition: 0.2s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .app-container {
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      grid-template-columns: 260px 1fr;
+      grid-template-areas:
+        "header header"
+        "sidebar main";
+      min-height: 100vh;
+      max-width: 1900px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    .app-header {
+      grid-area: header;
+      background: var(--primary-black);
+      border-bottom: 2px solid var(--accent-orange);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--spacing-lg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .header-logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--accent-orange);
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-tagline {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      background: var(--accent-orange-glow);
+      border: 1px solid var(--border-orange);
+      color: var(--accent-orange);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* SIDEBAR */
+    .app-sidebar {
+      grid-area: sidebar;
+      background: var(--primary-black);
+      border-right: 1px solid var(--border-color);
+      padding: var(--spacing-lg) 0;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: var(--spacing-md) var(--spacing-lg) var(--spacing-sm);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: 10px var(--spacing-lg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      border-left: 3px solid transparent;
+      font-size: 0.9rem;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-orange-glow);
+      color: var(--accent-orange);
+      border-left-color: var(--accent-orange);
+    }
+
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent-orange);
+      color: var(--primary-black);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* MAIN CONTENT */
+    .app-main {
+      grid-area: main;
+      background: var(--bg-dark);
+      padding: var(--spacing-xl);
+      overflow-y: auto;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* ============================================================
+       COMMON COMPONENTS
+       ============================================================ */
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .module-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .module-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* CARDS */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      transition: border-color var(--transition);
+    }
+
+    .stat-card:hover { border-color: var(--border-orange); }
+
+    .stat-card-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .stat-card-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent-orange);
+      line-height: 1;
+    }
+
+    .stat-card-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: var(--spacing-xs);
+    }
+
+    .content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .content-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .content-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* LOAD PIPELINE CARD */
+    .load-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-orange);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .load-card:hover { background: var(--bg-hover); }
+    .load-card.status-paid { border-left-color: var(--success); }
+    .load-card.status-delivered { border-left-color: var(--info); }
+    .load-card.status-alerted { border-left-color: var(--warning); }
+
+    .load-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .load-card-id {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .load-card-lane {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 4px 0;
+    }
+
+    .load-card-broker {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .load-card-rate {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent-orange);
+      white-space: nowrap;
+    }
+
+    .load-card-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      margin-top: var(--spacing-sm);
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* STATUS BADGES */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-alerted    { background: var(--warning-bg);  color: var(--warning);  border: 1px solid rgba(243,156,18,0.3); }
+    .status-emailed    { background: var(--info-bg);     color: var(--info);     border: 1px solid rgba(52,152,219,0.3); }
+    .status-rate_con_received { background: rgba(155,89,182,0.1); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
+    .status-picked_up  { background: var(--accent-orange-glow); color: var(--accent-orange); border: 1px solid var(--border-orange); }
+    .status-delivered  { background: var(--info-bg);     color: var(--info);     border: 1px solid rgba(52,152,219,0.3); }
+    .status-invoiced   { background: rgba(46,204,113,0.1); color: #27ae60; border: 1px solid rgba(46,204,113,0.3); }
+    .status-paid       { background: var(--success-bg);  color: var(--success);  border: 1px solid rgba(46,204,113,0.3); }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent-orange);
+      color: var(--primary-black);
+    }
+    .btn-primary:hover { background: var(--accent-orange-dark); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--accent-orange); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--error);
+      border: 1px solid rgba(231,76,60,0.3);
+    }
+    .btn-danger:hover { background: var(--error-bg); }
+
+    .btn-success {
+      background: transparent;
+      color: var(--success);
+      border: 1px solid rgba(46,204,113,0.3);
+    }
+    .btn-success:hover { background: var(--success-bg); }
+
+    .btn-email {
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid rgba(52,152,219,0.3);
+    }
+    .btn-email:hover { background: rgba(52,152,219,0.2); }
+
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    .btn-icon { padding: 6px; min-width: 32px; justify-content: center; }
+
+    /* FORMS */
+    .form-group { margin-bottom: var(--spacing-md); }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      transition: border-color var(--transition);
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-orange);
+    }
+
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-select option { background: var(--bg-card); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* TAGS / KEYWORDS */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .tag.tag-orange {
+      background: var(--accent-orange-glow);
+      border-color: var(--border-orange);
+      color: var(--accent-orange);
+    }
+
+    .tag-remove {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1;
+      padding: 0 2px;
+    }
+
+    .tag-remove:hover { color: var(--error); }
+
+    .tag-input-row {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    .tag-input-row .form-input { flex: 1; }
+
+    /* PIPELINE STEPS */
+    .pipeline {
+      display: flex;
+      gap: var(--spacing-xs);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .pipeline-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .pipeline-dot.done { background: var(--success); }
+    .pipeline-dot.current { background: var(--accent-orange); box-shadow: 0 0 6px var(--accent-orange); }
+
+    .pipeline-label { font-size: 0.65rem; color: var(--text-muted); }
+    .pipeline-arrow { color: var(--text-muted); font-size: 0.65rem; }
+
+    /* TABLE */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: var(--spacing-sm) var(--spacing-md);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 10px var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    .data-table tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-lg);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+    }
+    .modal-close:hover { color: var(--text-primary); }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      top: var(--spacing-lg);
+      right: var(--spacing-lg);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      min-width: 260px;
+      max-width: 380px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      animation: slideIn 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .toast.toast-success { border-left: 3px solid var(--success); }
+    .toast.toast-error   { border-left: 3px solid var(--error); }
+    .toast.toast-info    { border-left: 3px solid var(--info); }
+    .toast.toast-warning { border-left: 3px solid var(--warning); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    /* LOADING */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl) var(--spacing-lg);
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: var(--spacing-md); }
+    .empty-state-title { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--spacing-sm); }
+    .empty-state-text { font-size: 0.85rem; }
+
+    /* SEARCH BAR */
+    .search-bar {
+      position: relative;
+      max-width: 320px;
+    }
+    .search-bar-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .search-bar .form-input { padding-left: 32px; }
+
+    /* QUICK ACTION GRID */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .quick-action-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg) var(--spacing-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .quick-action-btn:hover {
+      background: var(--accent-orange-glow);
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .quick-action-icon { font-size: 1.6rem; margin-bottom: var(--spacing-sm); display: block; }
+
+    /* CHECKBOX */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    input[type="checkbox"] { accent-color: var(--accent-orange); width: 16px; height: 16px; cursor: pointer; }
+
+    /* MOBILE NAV TOGGLE */
+    .mobile-nav-toggle {
+      display: none;
+      position: fixed;
+      bottom: var(--spacing-lg);
+      right: var(--spacing-lg);
+      z-index: 200;
+      background: var(--accent-orange);
+      color: var(--primary-black);
+      border: none;
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .app-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "header"
+          "main";
+      }
+
+      .app-sidebar {
+        display: none;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        width: 260px;
+        z-index: 150;
+        height: calc(100vh - 64px);
+      }
+
+      .app-sidebar.mobile-open { display: block; }
+      .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+      .app-main { padding: var(--spacing-lg); }
+    }
+
+    @media (max-width: 600px) {
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .module-title { font-size: 1.2rem; }
+      .load-card-top { flex-direction: column; }
+      .modal-content { padding: var(--spacing-lg); }
+    }
+
+    /* MISC */
+    .divider { border: none; border-top: 1px solid var(--border-color); margin: var(--spacing-lg) 0; }
+    .text-orange { color: var(--accent-orange); }
+    .text-muted  { color: var(--text-muted); }
+    .text-success { color: var(--success); }
+    .text-error   { color: var(--error); }
+    .mono { font-family: var(--font-mono); }
+    .flex { display: flex; }
+    .gap-sm { gap: var(--spacing-sm); }
+    .gap-md { gap: var(--spacing-md); }
+    .align-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .flex-wrap { flex-wrap: wrap; }
+    .mt-sm { margin-top: var(--spacing-sm); }
+    .mt-md { margin-top: var(--spacing-md); }
+    .mb-md { margin-bottom: var(--spacing-md); }
+    .w-100 { width: 100%; }
+
+    .placeholder-module {
+      text-align: center;
+      padding: 80px var(--spacing-lg);
+      color: var(--text-muted);
+    }
+    .placeholder-module h2 { font-size: 1.4rem; color: var(--text-secondary); margin-bottom: var(--spacing-sm); }
+    .placeholder-module .phase-badge {
+      display: inline-block;
+      background: var(--accent-orange-glow);
+      color: var(--accent-orange);
+      border: 1px solid var(--border-orange);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: var(--spacing-lg);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- APP LAYOUT -->
+<div class="app-container">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div>
+        <div class="header-logo">🚛 PTC Command Center</div>
+        <div class="header-tagline">Keep the wheels turning</div>
+      </div>
+    </div>
+    <div class="flex gap-md align-center">
+      <span class="header-badge" id="activeLoadsCount">0 Active</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR NAV -->
+  <nav class="app-sidebar" id="appSidebar">
+    <div class="nav-section-label">Operations</div>
+    <div class="nav-item active" data-module="dashboard">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" data-module="loads">
+      <span class="nav-icon">📦</span> Load Tracker
+      <span class="nav-badge" id="activeLoadsBadge">0</span>
+    </div>
+    <div class="nav-item" data-module="alerts">
+      <span class="nav-icon">🔔</span> Alerts Log
+    </div>
+    <div class="nav-section-label">Configuration</div>
+    <div class="nav-item" data-module="settings">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+    <div class="nav-section-label">Phase 2</div>
+    <div class="nav-item" data-module="drivers">
+      <span class="nav-icon">👤</span> Drivers
+    </div>
+    <div class="nav-item" data-module="finances">
+      <span class="nav-icon">💰</span> Finances
+    </div>
+  </nav>
+
+  <!-- MAIN MODULE AREA -->
+  <main class="app-main">
+    <div id="moduleContainer">
+      <!-- Modules render here -->
+    </div>
+  </main>
+</div>
+
+<!-- MOBILE NAV TOGGLE -->
+<button class="mobile-nav-toggle" id="mobileNavToggle" onclick="toggleMobileNav()">☰</button>
+
+<!-- ============================================================
+     FIREBASE SDK
+     ============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   FIREBASE INIT
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-2Iefb6tZ2SFA3-7unSoY2per7sxDHyg",
+  authDomain: "puntier-trucking.firebaseapp.com",
+  projectId: "puntier-trucking",
+  storageBucket: "puntier-trucking.firebasestorage.app",
+  messagingSenderId: "561261469993",
+  appId: "1:561261469993:web:cf848008286721c7995738"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+const APP = {
+  currentModule: 'dashboard',
+  data: {
+    loads: null,
+    alerts: null,
+    settings: null
+  },
+  settings: {
+    origin_keywords: ['Buford', 'Atlanta', 'Kennesaw', 'Marietta', 'Smyrna', 'Tucker', 'Decatur'],
+    target_brokers: ['TA Services', 'Ryan Transportation', 'Worldwide Logistics'],
+    radius_miles: 100,
+    email_template: 'Is this load still available? If so, what are the details?',
+    email_subject_template: '{origin} to {destination}',
+    notification_enabled: true
+  }
+};
+
+const LOAD_STATUSES = [
+  { key: 'alerted',           label: 'Alerted',       emoji: '🔔' },
+  { key: 'emailed',           label: 'Emailed',       emoji: '📧' },
+  { key: 'rate_con_received', label: 'Rate Con',      emoji: '📄' },
+  { key: 'picked_up',         label: 'Picked Up',     emoji: '🚛' },
+  { key: 'delivered',         label: 'Delivered',     emoji: '✅' },
+  { key: 'invoiced',          label: 'Invoiced',      emoji: '🧾' },
+  { key: 'paid',              label: 'Paid',          emoji: '💰' }
+];
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function initNavigation() {
+  const navItems = document.querySelectorAll('.nav-item[data-module]');
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const module = item.getAttribute('data-module');
+      loadModule(module, true);
+    });
+  });
+
+  window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.module) {
+      loadModule(e.state.module, false);
+    }
+  });
+
+  // Load initial module from hash or default
+  const hash = window.location.hash.replace('#', '');
+  const validModules = ['dashboard', 'loads', 'alerts', 'settings', 'drivers', 'finances'];
+  loadModule(validModules.includes(hash) ? hash : 'dashboard', false);
+}
+
+function setActiveNav(moduleName) {
+  document.querySelectorAll('.nav-item[data-module]').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-module') === moduleName);
+  });
+}
+
+function loadModule(moduleName, pushHistory = true) {
+  APP.currentModule = moduleName;
+  setActiveNav(moduleName);
+
+  if (pushHistory) {
+    window.history.pushState({ module: moduleName }, '', `#${moduleName}`);
+  }
+
+  // Close mobile nav
+  document.getElementById('appSidebar').classList.remove('mobile-open');
+
+  switch (moduleName) {
+    case 'dashboard': loadDashboard(); break;
+    case 'loads':     loadLoads();     break;
+    case 'alerts':    loadAlerts();    break;
+    case 'settings':  loadSettings();  break;
+    case 'drivers':   loadPlaceholder('Drivers', 'Driver management, clock-in/out, and hours approval.', '👤'); break;
+    case 'finances':  loadPlaceholder('Finances', 'Revenue tracking, QuickBooks sync, and P&L reports.', '💰'); break;
+    default:          loadDashboard();
+  }
+}
+
+function toggleMobileNav() {
+  document.getElementById('appSidebar').classList.toggle('mobile-open');
+}
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+function showLoading() {
+  if (!document.getElementById('loadingOverlay')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+      </div>
+    `);
+  }
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay')?.remove();
+}
+
+function showToast(message, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+  document.getElementById('toastContainer').appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatCurrency(val) {
+  if (!val && val !== 0) return '—';
+  return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatTimestamp(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+         d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function getTimeAgo(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function getStatusIndex(status) {
+  return LOAD_STATUSES.findIndex(s => s.key === status);
+}
+
+function getStatusInfo(status) {
+  return LOAD_STATUSES.find(s => s.key === status) || { key: status, label: status, emoji: '•' };
+}
+
+function buildLoadLabel(load) {
+  const broker = (load.broker_name || 'BROKER').replace(/\s+/g, '_').toUpperCase();
+  const num = (load.load_number || 'XXXXX').replace(/\s+/g, '');
+  return `${broker}_${num}`;
+}
+
+function buildPipelineHTML(currentStatus) {
+  const currentIdx = getStatusIndex(currentStatus);
+  return `<div class="pipeline">` +
+    LOAD_STATUSES.map((s, i) => {
+      let dotClass = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : '');
+      return `
+        <div class="pipeline-step">
+          <div class="pipeline-dot ${dotClass}" title="${s.label}"></div>
+          <span class="pipeline-label">${s.label}</span>
+        </div>
+        ${i < LOAD_STATUSES.length - 1 ? '<span class="pipeline-arrow">›</span>' : ''}
+      `;
+    }).join('') +
+  `</div>`;
+}
+
+async function logActivity(type, description) {
+  try {
+    await db.collection('activity_log').add({
+      type,
+      description,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (e) { console.warn('Activity log error:', e); }
+}
+
+/* ============================================================
+   MODULE: DASHBOARD
+   ============================================================ */
+async function loadDashboard() {
+  showLoading();
+  try {
+    // Parallel fetches
+    const [loadsSnap, alertsSnap, activitySnap] = await Promise.all([
+      db.collection('loads').orderBy('created_at', 'desc').limit(50).get(),
+      db.collection('alerts_log').orderBy('triggered_at', 'desc').limit(5).get(),
+      db.collection('activity_log').orderBy('timestamp', 'desc').limit(8).get()
+    ]);
+
+    const loads = [];
+    loadsSnap.forEach(doc => loads.push({ _id: doc.id, ...doc.data() }));
+
+    const alerts = [];
+    alertsSnap.forEach(doc => alerts.push({ _id: doc.id, ...doc.data() }));
+
+    const activities = [];
+    activitySnap.forEach(doc => activities.push({ _id: doc.id, ...doc.data() }));
+
+    // Compute stats
+    const activeLoads = loads.filter(l => !['paid'].includes(l.status));
+    const todayLoads  = loads.filter(l => {
+      if (!l.created_at) return false;
+      const d = l.created_at.toDate ? l.created_at.toDate() : new Date(l.created_at);
+      return d.toDateString() === new Date().toDateString();
+    });
+
+    const thisMonthRevenue = loads
+      .filter(l => l.status === 'paid' && l.created_at)
+      .filter(l => {
+        const d = l.created_at.toDate ? l.created_at.toDate() : new Date(l.created_at);
+        const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      })
+      .reduce((sum, l) => sum + (Number(l.rate) || 0), 0);
+
+    const pendingDocs = loads.filter(l =>
+      ['delivered', 'invoiced'].includes(l.status) && !l.factoring_submitted
+    );
+
+    // Recent active loads (not paid)
+    const recentActive = activeLoads.slice(0, 5);
+
+    document.getElementById('moduleContainer').innerHTML = `
+      <div class="module-header">
+        <div>
+          <h1 class="module-title">Dashboard</h1>
+          <div class="module-subtitle">Puntier Trucking Co — Overview</div>
+        </div>
+        <button class="btn btn-primary" onclick="showAddLoadModal()">+ New Load</button>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-card-label">Active Loads</div>
+          <div class="stat-card-value">${activeLoads.length}</div>
+          <div class="stat-card-sub">In progress</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Added Today</div>
+          <div class="stat-card-value">${todayLoads.length}</div>
+          <div class="stat-card-sub">New entries</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Revenue MTD</div>
+          <div class="stat-card-value" style="font-size:1.4rem">${formatCurrency(thisMonthRevenue)}</div>
+          <div class="stat-card-sub">Paid this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Pending Docs</div>
+          <div class="stat-card-value" style="color:${pendingDocs.length > 0 ? 'var(--warning)' : 'var(--success)'}">${pendingDocs.length}</div>
+          <div class="stat-card-sub">BOL / factoring needed</div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="quick-actions">
+        <div class="quick-action-btn" onclick="loadModule('loads')">
+          <span class="quick-action-icon">📦</span>
+          Load Tracker
+        </div>
+        <div class="quick-action-btn" onclick="showAddLoadModal()">
+          <span class="quick-action-icon">➕</span>
+          Add Load
+        </div>
+        <div class="quick-action-btn" onclick="loadModule('alerts')">
+          <span class="quick-action-icon">🔔</span>
+          Alerts Log
+        </div>
+        <div class="quick-action-btn" onclick="loadModule('settings')">
+          <span class="quick-action-icon">⚙️</span>
+          Settings
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-lg);flex-wrap:wrap">
+
+        <!-- ACTIVE LOADS -->
+        <div class="content-card" style="grid-column:1/-1">
+          <div class="content-card-header">
+            <span class="content-card-title">🚛 Active Loads</span>
+            <button class="btn btn-secondary btn-sm" onclick="loadModule('loads')">View All</button>
+          </div>
+          ${recentActive.length === 0 ? `
+            <div class="empty-state">
+              <div class="empty-state-icon">📦</div>
+              <div class="empty-state-title">No active loads</div>
+              <div class="empty-state-text">Add a load to get started</div>
+            </div>
+          ` : recentActive.map(load => renderLoadCard(load, true)).join('')}
+        </div>
+
+        <!-- RECENT ALERTS -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <span class="content-card-title">🔔 Recent Alerts</span>
+            <button class="btn btn-secondary btn-sm" onclick="loadModule('alerts')">View All</button>
+          </div>
+          ${alerts.length === 0 ? `
+            <div class="empty-state">
+              <div class="empty-state-icon">🔔</div>
+              <div class="empty-state-title">No alerts yet</div>
+              <div class="empty-state-text">Configure keywords in Settings</div>
+            </div>
+          ` : alerts.map(a => `
+            <div style="padding:var(--spacing-sm) 0;border-bottom:1px solid var(--border-color)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.85rem;color:var(--text-secondary)">${a.origin || '?'} → ${a.destination || '?'}</span>
+                <span class="status-badge status-${a.action_taken || 'alerted'}">${a.action_taken || 'alerted'}</span>
+              </div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${a.broker_name || ''} · ${getTimeAgo(a.triggered_at)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- ACTIVITY LOG -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <span class="content-card-title">📋 Activity Log</span>
+          </div>
+          ${activities.length === 0 ? `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <div class="empty-state-title">No activity yet</div>
+            </div>
+          ` : activities.map(a => `
+            <div style="padding:var(--spacing-sm) 0;border-bottom:1px solid var(--border-color)">
+              <div style="font-size:0.85rem;color:var(--text-secondary)">${a.description || a.type}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${getTimeAgo(a.timestamp)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+      </div>
+    `;
+
+    // Update header badge
+    updateActiveLoadsBadge(activeLoads.length);
+    hideLoading();
+
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('Error loading dashboard', 'error');
+  }
+}
+
+function updateActiveLoadsBadge(count) {
+  document.getElementById('activeLoadsCount').textContent = `${count} Active`;
+  document.getElementById('activeLoadsBadge').textContent = count;
+}
+
+/* ============================================================
+   MODULE: LOADS
+   ============================================================ */
+async function loadLoads() {
+  showLoading();
+  try {
+    const snap = await db.collection('loads').orderBy('created_at', 'desc').get();
+    const loads = [];
+    snap.forEach(doc => loads.push({ _id: doc.id, ...doc.data() }));
+
+    const activeLoads   = loads.filter(l => l.status !== 'paid');
+    const completedLoads = loads.filter(l => l.status === 'paid');
+
+    updateActiveLoadsBadge(activeLoads.length);
+    APP.data.loads = loads;
+
+    document.getElementById('moduleContainer').innerHTML = `
+      <div class="module-header">
+        <div>
+          <h1 class="module-title">Load Tracker</h1>
+          <div class="module-subtitle">${activeLoads.length} active · ${completedLoads.length} paid</div>
+        </div>
+        <div class="flex gap-sm align-center flex-wrap">
+          <div class="search-bar">
+            <span class="search-bar-icon">🔍</span>
+            <input type="text" class="form-input" id="loadSearch" placeholder="Search loads..." oninput="filterLoads()" />
+          </div>
+          <button class="btn btn-primary" onclick="showAddLoadModal()">+ New Load</button>
+        </div>
+      </div>
+
+      <!-- STATUS FILTER -->
+      <div class="flex gap-sm flex-wrap mb-md">
+        <button class="btn btn-secondary btn-sm load-filter-btn active" data-filter="all" onclick="setLoadFilter('all', this)">All (${loads.length})</button>
+        ${LOAD_STATUSES.map(s => {
+          const count = loads.filter(l => l.status === s.key).length;
+          return count > 0 ? `<button class="btn btn-secondary btn-sm load-filter-btn" data-filter="${s.key}" onclick="setLoadFilter('${s.key}', this)">${s.emoji} ${s.label} (${count})</button>` : '';
+        }).join('')}
+      </div>
+
+      <!-- LOADS LIST -->
+      <div id="loadsListContainer">
+        ${loads.length === 0 ? `
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-title">No loads yet</div>
+            <div class="empty-state-text">Click "New Load" to add your first load entry.</div>
+          </div>
+        ` : loads.map(load => renderLoadCard(load, false)).join('')}
+      </div>
+    `;
+
+    hideLoading();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('Error loading loads', 'error');
+  }
+}
+
+function renderLoadCard(load, compact = false) {
+  const si = getStatusInfo(load.status);
+  const label = buildLoadLabel(load);
+  return `
+    <div class="load-card status-${load.status}" id="loadCard_${load._id}">
+      <div class="load-card-top">
+        <div style="flex:1;min-width:0">
+          <div class="load-card-id">${label} · ${formatDate(load.pickup_date)}</div>
+          <div class="load-card-lane">${load.origin_city || '?'} → ${load.destination_city || '?'}</div>
+          <div class="load-card-broker">${load.broker_name || 'Unknown Broker'} ${load.broker_email ? '· ' + load.broker_email : ''}</div>
+          ${!compact ? buildPipelineHTML(load.status) : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="load-card-rate">${formatCurrency(load.rate)}</div>
+          <div style="margin-top:4px"><span class="status-badge status-${load.status}">${si.emoji} ${si.label}</span></div>
+          ${load.factoring_submitted ? '<div style="font-size:0.7rem;color:var(--success);margin-top:4px">✅ Factoring Submitted</div>' : ''}
+        </div>
+      </div>
+
+      ${!compact ? `
+      <div class="load-card-actions">
+        <!-- Email Action -->
+        ${load.status === 'alerted' ? `
+          <button class="btn btn-email btn-sm" onclick="sendAvailabilityEmail('${load._id}')">
+            📧 Email Broker
+          </button>
+        ` : ''}
+
+        <!-- Status Advance -->
+        ${getStatusIndex(load.status) < LOAD_STATUSES.length - 1 ? `
+          <button class="btn btn-success btn-sm" onclick="advanceLoadStatus('${load._id}', '${load.status}')">
+            → Mark ${getStatusInfo(LOAD_STATUSES[getStatusIndex(load.status) + 1]?.key)?.label}
+          </button>
+        ` : ''}
+
+        <!-- Docs check -->
+        ${load.status === 'delivered' && !load.factoring_submitted ? `
+          <button class="btn btn-secondary btn-sm" onclick="markFactoringSubmitted('${load._id}')">
+            🧾 Mark Factoring Submitted
+          </button>
+        ` : ''}
+
+        <button class="btn btn-secondary btn-sm" onclick="showEditLoadModal('${load._id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLoad('${load._id}')">🗑️</button>
+      </div>
+      ` : `
+      <div class="load-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="loadModule('loads')">View Details</button>
+      </div>
+      `}
+
+      ${load.notes ? `<div style="font-size:0.8rem;color:var(--text-muted);margin-top:var(--spacing-sm);font-style:italic">📝 ${load.notes}</div>` : ''}
+    </div>
+  `;
+}
+
+let currentLoadFilter = 'all';
+
+function setLoadFilter(filter, btn) {
+  currentLoadFilter = filter;
+  document.querySelectorAll('.load-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterLoads();
+}
+
+function filterLoads() {
+  const query = (document.getElementById('loadSearch')?.value || '').toLowerCase();
+  if (!APP.data.loads) return;
+
+  const filtered = APP.data.loads.filter(load => {
+    const matchStatus = currentLoadFilter === 'all' || load.status === currentLoadFilter;
+    const matchSearch = !query ||
+      (load.load_number || '').toLowerCase().includes(query) ||
+      (load.broker_name || '').toLowerCase().includes(query) ||
+      (load.origin_city || '').toLowerCase().includes(query) ||
+      (load.destination_city || '').toLowerCase().includes(query);
+    return matchStatus && matchSearch;
+  });
+
+  const container = document.getElementById('loadsListContainer');
+  if (!container) return;
+
+  container.innerHTML = filtered.length === 0
+    ? `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">No matches found</div></div>`
+    : filtered.map(load => renderLoadCard(load, false)).join('');
+}
+
+async function advanceLoadStatus(loadId, currentStatus) {
+  const currentIdx = getStatusIndex(currentStatus);
+  if (currentIdx >= LOAD_STATUSES.length - 1) return;
+  const nextStatus = LOAD_STATUSES[currentIdx + 1].key;
+
+  try {
+    await db.collection('loads').doc(loadId).update({
+      status: nextStatus,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logActivity('load_status_updated', `Load advanced to ${getStatusInfo(nextStatus).label}`);
+    showToast(`Marked as ${getStatusInfo(nextStatus).label}`, 'success');
+    loadLoads();
+  } catch (err) {
+    console.error(err);
+    showToast('Error updating status', 'error');
+  }
+}
+
+async function markFactoringSubmitted(loadId) {
+  try {
+    await db.collection('loads').doc(loadId).update({
+      factoring_submitted: true,
+      factoring_submitted_at: firebase.firestore.FieldValue.serverTimestamp(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Factoring marked as submitted', 'success');
+    loadLoads();
+  } catch (err) {
+    console.error(err);
+    showToast('Error updating', 'error');
+  }
+}
+
+async function deleteLoad(loadId) {
+  if (!confirm('Delete this load? This cannot be undone.')) return;
+  try {
+    await db.collection('loads').doc(loadId).delete();
+    await logActivity('load_deleted', 'Load entry deleted');
+    showToast('Load deleted', 'info');
+    loadLoads();
+  } catch (err) {
+    console.error(err);
+    showToast('Error deleting load', 'error');
+  }
+}
+
+/* ============================================================
+   EMAIL STUB
+   ============================================================ */
+async function sendAvailabilityEmail(loadId) {
+  const load = APP.data.loads?.find(l => l._id === loadId);
+  if (!load) { showToast('Load not found', 'error'); return; }
+
+  const settings = APP.settings;
+  const subject = (settings.email_subject_template || '{origin} to {destination}')
+    .replace('{origin}', load.origin_city || '')
+    .replace('{destination}', load.destination_city || '')
+    .replace('{broker}', load.broker_name || '')
+    .replace('{load_number}', load.load_number || '');
+
+  const body = settings.email_template || 'Is this load still available? If so, what are the details?';
+  const to = load.broker_email || '';
+
+  const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoLink, '_blank');
+
+  // Log it
+  try {
+    await db.collection('loads').doc(loadId).update({
+      status: 'emailed',
+      email_sent: true,
+      email_sent_at: firebase.firestore.FieldValue.serverTimestamp(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('alerts_log').add({
+      load_id: loadId,
+      load_number: load.load_number || '',
+      broker_name: load.broker_name || '',
+      origin: load.origin_city || '',
+      destination: load.destination_city || '',
+      rate: String(load.rate || ''),
+      triggered_at: firebase.firestore.FieldValue.serverTimestamp(),
+      action_taken: 'emailed'
+    });
+    await logActivity('load_emailed', `Emailed ${load.broker_name} about ${load.origin_city}→${load.destination_city}`);
+    showToast('Email opened & load marked as Emailed', 'success');
+    loadLoads();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* ============================================================
+   ADD / EDIT LOAD MODAL
+   ============================================================ */
+function showAddLoadModal(prefill = {}) {
+  const brokerOptions = (APP.settings.target_brokers || []).map(b =>
+    `<option value="${b}" ${prefill.broker_name === b ? 'selected' : ''}>${b}</option>`
+  ).join('');
+
+  const statusOptions = LOAD_STATUSES.map(s =>
+    `<option value="${s.key}" ${(prefill.status || 'alerted') === s.key ? 'selected' : ''}>${s.emoji} ${s.label}</option>`
+  ).join('');
+
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="addLoadModal" onclick="closeModal(event, 'addLoadModal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('addLoadModal').remove()">✕</button>
+        <div class="modal-title">${prefill._id ? '✏️ Edit Load' : '➕ New Load Entry'}</div>
+
+        <form onsubmit="submitLoadForm(event, '${prefill._id || ''}')">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Load Number *</label>
+              <input type="text" class="form-input" id="f_load_number" value="${prefill.load_number || ''}" placeholder="e.g. 123456" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="f_status">${statusOptions}</select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Broker Name *</label>
+              <input type="text" class="form-input" id="f_broker_name" list="brokerList" value="${prefill.broker_name || ''}" placeholder="e.g. Ryan Transportation" required />
+              <datalist id="brokerList">${brokerOptions}</datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rate ($) *</label>
+              <input type="number" class="form-input" id="f_rate" value="${prefill.rate || ''}" placeholder="e.g. 1500" step="0.01" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Broker Email</label>
+              <input type="email" class="form-input" id="f_broker_email" value="${prefill.broker_email || ''}" placeholder="broker@example.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Broker Phone</label>
+              <input type="tel" class="form-input" id="f_broker_phone" value="${prefill.broker_phone || ''}" placeholder="(555) 000-0000" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Origin City *</label>
+              <input type="text" class="form-input" id="f_origin_city" list="keywordList" value="${prefill.origin_city || ''}" placeholder="e.g. Buford, GA" required />
+              <datalist id="keywordList">${(APP.settings.origin_keywords||[]).map(k=>`<option value="${k}">`).join('')}</datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Destination City *</label>
+              <input type="text" class="form-input" id="f_destination_city" value="${prefill.destination_city || ''}" placeholder="e.g. Nashville, TN" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Pickup Date</label>
+              <input type="date" class="form-input" id="f_pickup_date" value="${prefill.pickup_date || ''}" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rate Con URL / Note</label>
+              <input type="text" class="form-input" id="f_rate_con_url" value="${prefill.rate_con_url || ''}" placeholder="Link or email subject" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">BOL / POD URL</label>
+              <input type="text" class="form-input" id="f_bol_url" value="${prefill.bol_url || ''}" placeholder="Link or note" />
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:2px">
+              <label class="checkbox-label">
+                <input type="checkbox" id="f_factoring" ${prefill.factoring_submitted ? 'checked' : ''} />
+                Factoring Submitted
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea class="form-textarea" id="f_notes" placeholder="Any additional notes...">${prefill.notes || ''}</textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('addLoadModal').remove()">Cancel</button>
+            <button type="submit" class="btn btn-primary">${prefill._id ? 'Save Changes' : 'Add Load'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `);
+}
+
+async function showEditLoadModal(loadId) {
+  const load = APP.data.loads?.find(l => l._id === loadId);
+  if (!load) {
+    // Fetch from Firestore
+    try {
+      const doc = await db.collection('loads').doc(loadId).get();
+      if (doc.exists) showAddLoadModal({ _id: loadId, ...doc.data() });
+    } catch (err) { showToast('Error loading data', 'error'); }
+    return;
+  }
+  showAddLoadModal({ ...load });
+}
+
+async function submitLoadForm(e, editId) {
+  e.preventDefault();
+  const data = {
+    load_number:        document.getElementById('f_load_number').value.trim(),
+    broker_name:        document.getElementById('f_broker_name').value.trim(),
+    broker_email:       document.getElementById('f_broker_email').value.trim(),
+    broker_phone:       document.getElementById('f_broker_phone').value.trim(),
+    origin_city:        document.getElementById('f_origin_city').value.trim(),
+    destination_city:   document.getElementById('f_destination_city').value.trim(),
+    rate:               parseFloat(document.getElementById('f_rate').value) || 0,
+    pickup_date:        document.getElementById('f_pickup_date').value,
+    status:             document.getElementById('f_status').value,
+    rate_con_url:       document.getElementById('f_rate_con_url').value.trim(),
+    bol_url:            document.getElementById('f_bol_url').value.trim(),
+    factoring_submitted: document.getElementById('f_factoring').checked,
+    notes:              document.getElementById('f_notes').value.trim(),
+    updated_at:         firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    if (editId) {
+      await db.collection('loads').doc(editId).update(data);
+      await logActivity('load_updated', `Updated load ${data.load_number} — ${data.broker_name}`);
+      showToast('Load updated', 'success');
+    } else {
+      data.created_at = firebase.firestore.FieldValue.serverTimestamp();
+      data.email_sent = false;
+      data.factoring_submitted_at = null;
+      await db.collection('loads').add(data);
+      await logActivity('load_added', `Added load ${data.load_number} — ${data.origin_city} → ${data.destination_city}`);
+      showToast('Load added', 'success');
+    }
+    document.getElementById('addLoadModal')?.remove();
+    loadLoads();
+  } catch (err) {
+    console.error(err);
+    showToast('Error saving load', 'error');
+  }
+}
+
+function closeModal(event, modalId) {
+  if (event.target.id === modalId) {
+    document.getElementById(modalId)?.remove();
+  }
+}
+
+/* ============================================================
+   MODULE: ALERTS LOG
+   ============================================================ */
+async function loadAlerts() {
+  showLoading();
+  try {
+    const snap = await db.collection('alerts_log').orderBy('triggered_at', 'desc').limit(100).get();
+    const alerts = [];
+    snap.forEach(doc => alerts.push({ _id: doc.id, ...doc.data() }));
+
+    document.getElementById('moduleContainer').innerHTML = `
+      <div class="module-header">
+        <div>
+          <h1 class="module-title">Alerts Log</h1>
+          <div class="module-subtitle">${alerts.length} total alerts logged</div>
+        </div>
+        <button class="btn btn-primary" onclick="showManualAlertModal()">+ Log Alert</button>
+      </div>
+
+      <div class="content-card">
+        ${alerts.length === 0 ? `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔔</div>
+            <div class="empty-state-title">No alerts logged</div>
+            <div class="empty-state-text">When you email a broker or manually log an alert, it appears here.</div>
+          </div>
+        ` : `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Lane</th>
+                <th>Broker</th>
+                <th>Load #</th>
+                <th>Rate</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${alerts.map(a => `
+                <tr>
+                  <td style="color:var(--text-muted);font-size:0.78rem;white-space:nowrap">${formatTimestamp(a.triggered_at)}</td>
+                  <td><strong>${a.origin || '?'} → ${a.destination || '?'}</strong></td>
+                  <td>${a.broker_name || '—'}</td>
+                  <td class="mono" style="font-size:0.8rem">${a.load_number || '—'}</td>
+                  <td>${a.rate ? '$' + a.rate : '—'}</td>
+                  <td><span class="status-badge status-${a.action_taken || 'alerted'}">${a.action_taken || 'alerted'}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `}
+      </div>
+    `;
+
+    hideLoading();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('Error loading alerts', 'error');
+  }
+}
+
+function showManualAlertModal() {
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="alertModal" onclick="closeModal(event, 'alertModal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('alertModal').remove()">✕</button>
+        <div class="modal-title">🔔 Log Manual Alert</div>
+        <form onsubmit="submitManualAlert(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Origin</label>
+              <input type="text" class="form-input" id="a_origin" placeholder="e.g. Buford, GA" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Destination</label>
+              <input type="text" class="form-input" id="a_destination" placeholder="e.g. Nashville, TN" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Broker Name</label>
+              <input type="text" class="form-input" id="a_broker" placeholder="e.g. Ryan Transportation" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Load Number</label>
+              <input type="text" class="form-input" id="a_load_number" placeholder="e.g. 123456" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Rate ($)</label>
+              <input type="text" class="form-input" id="a_rate" placeholder="e.g. 1200" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Action Taken</label>
+              <select class="form-select" id="a_action">
+                <option value="alerted">Alerted — No action yet</option>
+                <option value="emailed">Emailed broker</option>
+                <option value="skipped">Skipped</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertModal').remove()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Log Alert</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `);
+}
+
+async function submitManualAlert(e) {
+  e.preventDefault();
+  const data = {
+    origin:       document.getElementById('a_origin').value.trim(),
+    destination:  document.getElementById('a_destination').value.trim(),
+    broker_name:  document.getElementById('a_broker').value.trim(),
+    load_number:  document.getElementById('a_load_number').value.trim(),
+    rate:         document.getElementById('a_rate').value.trim(),
+    action_taken: document.getElementById('a_action').value,
+    triggered_at: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await db.collection('alerts_log').add(data);
+    await logActivity('alert_logged', `Alert logged: ${data.origin} → ${data.destination}`);
+    document.getElementById('alertModal')?.remove();
+    showToast('Alert logged', 'success');
+    loadAlerts();
+  } catch (err) {
+    console.error(err);
+    showToast('Error saving alert', 'error');
+  }
+}
+
+/* ============================================================
+   MODULE: SETTINGS
+   ============================================================ */
+async function loadSettings() {
+  showLoading();
+  try {
+    // Load saved settings from Firestore
+    const doc = await db.collection('settings').doc('preferences').get();
+    if (doc.exists) {
+      Object.assign(APP.settings, doc.data());
+    }
+
+    const s = APP.settings;
+
+    document.getElementById('moduleContainer').innerHTML = `
+      <div class="module-header">
+        <div>
+          <h1 class="module-title">Settings</h1>
+          <div class="module-subtitle">Load alert criteria & email templates</div>
+        </div>
+      </div>
+
+      <!-- KEYWORDS -->
+      <div class="content-card">
+        <div class="content-card-header">
+          <span class="content-card-title">📍 Origin Keywords</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:var(--spacing-md)">
+          Alert when a load originates from any of these cities/areas.
+        </p>
+        <div class="tag-list" id="keywordTags">
+          ${s.origin_keywords.map(k => `
+            <div class="tag tag-orange">
+              ${k} <span class="tag-remove" onclick="removeKeyword('${k}')">×</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="tag-input-row mt-sm">
+          <input type="text" class="form-input" id="newKeyword" placeholder="Add city keyword..." onkeydown="if(event.key==='Enter'){event.preventDefault();addKeyword()}" />
+          <button class="btn btn-secondary" onclick="addKeyword()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- TARGET BROKERS -->
+      <div class="content-card">
+        <div class="content-card-header">
+          <span class="content-card-title">🤝 Target Brokers</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:var(--spacing-md)">
+          Priority brokers to watch. These auto-populate in the load entry form.
+        </p>
+        <div class="tag-list" id="brokerTags">
+          ${s.target_brokers.map(b => `
+            <div class="tag tag-orange">
+              ${b} <span class="tag-remove" onclick="removeBroker('${b}')">×</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="tag-input-row mt-sm">
+          <input type="text" class="form-input" id="newBroker" placeholder="Add broker name..." onkeydown="if(event.key==='Enter'){event.preventDefault();addBroker()}" />
+          <button class="btn btn-secondary" onclick="addBroker()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- EMAIL TEMPLATE -->
+      <div class="content-card">
+        <div class="content-card-header">
+          <span class="content-card-title">📧 Email Template</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:var(--spacing-md)">
+          This is the email body sent when you click "Email Broker" on a load.
+          The subject uses <code style="color:var(--accent-orange)">{origin}</code>, <code style="color:var(--accent-orange)">{destination}</code>, <code style="color:var(--accent-orange)">{load_number}</code> tokens.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Email Subject Template</label>
+          <input type="text" class="form-input" id="emailSubject" value="${s.email_subject_template || '{origin} to {destination}'}"
+            placeholder="{origin} to {destination}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Body</label>
+          <textarea class="form-textarea" id="emailBody" style="min-height:120px">${s.email_template || 'Is this load still available? If so, what are the details?'}</textarea>
+        </div>
+        <div style="background:var(--bg-hover);border-radius:var(--radius-md);padding:var(--spacing-md);margin-top:var(--spacing-sm)">
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px">PREVIEW (Buford, GA → Nashville, TN)</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary)">
+            <strong>Subject:</strong> Buford, GA to Nashville, TN<br>
+            <div style="margin-top:4px" id="emailPreview">${s.email_template}</div>
+          </div>
+        </div>
+        <div style="margin-top:var(--spacing-md)">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Save All Settings</button>
+        </div>
+      </div>
+
+      <!-- FUTURE: AUTO-EMAIL CONFIG -->
+      <div class="content-card" style="border-color:var(--border-orange);opacity:0.7">
+        <div class="content-card-header">
+          <span class="content-card-title">🤖 Auto-Email (Phase 2)</span>
+          <span class="status-badge status-alerted">Coming Soon</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted)">
+          Phase 2 will connect Gmail API to send availability emails <strong>automatically</strong> the moment a matching load pops up on the board. No manual clicking required.
+        </p>
+      </div>
+    `;
+
+    // Live preview
+    document.getElementById('emailBody').addEventListener('input', function() {
+      document.getElementById('emailPreview').textContent = this.value;
+    });
+
+    hideLoading();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('Error loading settings', 'error');
+  }
+}
+
+function addKeyword() {
+  const input = document.getElementById('newKeyword');
+  const val = input.value.trim();
+  if (!val) return;
+  if (APP.settings.origin_keywords.includes(val)) { showToast('Already exists', 'warning'); return; }
+  APP.settings.origin_keywords.push(val);
+  input.value = '';
+  renderKeywordTags();
+}
+
+function removeKeyword(keyword) {
+  APP.settings.origin_keywords = APP.settings.origin_keywords.filter(k => k !== keyword);
+  renderKeywordTags();
+}
+
+function renderKeywordTags() {
+  document.getElementById('keywordTags').innerHTML = APP.settings.origin_keywords.map(k => `
+    <div class="tag tag-orange">
+      ${k} <span class="tag-remove" onclick="removeKeyword('${k}')">×</span>
+    </div>
+  `).join('');
+}
+
+function addBroker() {
+  const input = document.getElementById('newBroker');
+  const val = input.value.trim();
+  if (!val) return;
+  if (APP.settings.target_brokers.includes(val)) { showToast('Already exists', 'warning'); return; }
+  APP.settings.target_brokers.push(val);
+  input.value = '';
+  renderBrokerTags();
+}
+
+function removeBroker(broker) {
+  APP.settings.target_brokers = APP.settings.target_brokers.filter(b => b !== broker);
+  renderBrokerTags();
+}
+
+function renderBrokerTags() {
+  document.getElementById('brokerTags').innerHTML = APP.settings.target_brokers.map(b => `
+    <div class="tag tag-orange">
+      ${b} <span class="tag-remove" onclick="removeBroker('${b}')">×</span>
+    </div>
+  `).join('');
+}
+
+async function saveSettings() {
+  const data = {
+    origin_keywords:        APP.settings.origin_keywords,
+    target_brokers:         APP.settings.target_brokers,
+    email_template:         document.getElementById('emailBody').value,
+    email_subject_template: document.getElementById('emailSubject').value,
+    notification_enabled:   true,
+    updated_at:             firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Update in-memory
+  Object.assign(APP.settings, data);
+
+  try {
+    await db.collection('settings').doc('preferences').set(data, { merge: true });
+    await logActivity('settings_updated', 'Settings saved');
+    showToast('Settings saved', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Error saving settings', 'error');
+  }
+}
+
+/* ============================================================
+   MODULE: PLACEHOLDER
+   ============================================================ */
+function loadPlaceholder(name, description, icon) {
+  document.getElementById('moduleContainer').innerHTML = `
+    <div class="module-header">
+      <h1 class="module-title">${icon} ${name}</h1>
+    </div>
+    <div class="placeholder-module">
+      <div class="empty-state-icon">${icon}</div>
+      <div class="phase-badge">Phase 2</div>
+      <h2>${name}</h2>
+      <p>${description}</p>
+    </div>
+  `;
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+async function init() {
+  // Pre-load settings
+  try {
+    const doc = await db.collection('settings').doc('preferences').get();
+    if (doc.exists) Object.assign(APP.settings, doc.data());
+  } catch(e) { /* use defaults */ }
+
+  initNavigation();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

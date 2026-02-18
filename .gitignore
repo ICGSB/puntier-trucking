@@ -1,0 +1,34 @@
+# Firebase
+.firebase/
+serviceAccountKey.json
+scripts/serviceAccountKey.json
+*.key.json
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.csv
+*.bak
